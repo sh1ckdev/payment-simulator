@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Эмулятор платежей</title>
+    <link rel="stylesheet" href="normilize.css">
+    <style>
+        body {
+            font-family: "Inter", Arial, sans-serif;
+            background: #f4f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+        }
+
+        .card {
+            background: white;
+            width: 420px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            animation: fadeIn .4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity:0; transform: translateY(10px);}
+            to {opacity:1; transform: translateY(0);}
+        }
+
+        h2 {
+            text-align:center;
+            margin-bottom: 20px;
+        }
+
+        label { font-weight: 600; font-size: 14px; margin-top: 12px; display:block; }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border-radius: 6px;
+            border: 1px solid #d3d8e0;
+            transition: .2s;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color:#4e8cff;
+            outline:none;
+            box-shadow:0 0 0 3px rgba(78,140,255,.25);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            border:none;
+            border-radius: 6px;
+            font-weight:600;
+            cursor:pointer;
+            transition:.2s;
+        }
+        .add-btn { background:#e1e9ff; }
+        .add-btn:hover { background:#cdd9ff; }
+
+        .send-btn { background:#4e8cff; color:white; }
+        .send-btn:hover { background:#3d76e6; }
+
+        #extra-fields div {
+            display:flex; gap: 10px; margin-top:10px;
+        }
+        #extra-fields input { flex:1; }
+
+        #extra-fields button {
+            width:auto; background:#ff6060; color:white;
+            padding: 0 10px; border-radius:6px;
+        }
+        #extra-fields button:hover { background:#e45151; }
+
+        #log {
+            margin-top:20px;
+            white-space:pre-wrap;
+            background:#f0f3f9;
+            padding:15px;
+            border-radius:8px;
+            font-size:14px;
+            border:1px solid #d3d8e0;
+            max-height:300px;
+            overflow:auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>💳 Эмулятор платежей</h2>
+
+    <label>URL API:</label>
+    <input id="apiUrl" type="text" placeholder="https://domain.com/api/payment">
+
+    <label>ID пользователя:</label>
+    <input id="userId" type="text" placeholder="12345">
+
+    <label>Сумма платежа:</label>
+    <input id="amount" type="number" placeholder="100">
+
+    <div id="extra-fields"></div>
+
+    <button class="add-btn" onclick="addField()">+ Добавить поле</button>
+    <button class="send-btn" onclick="sendPayment()">Отправить платёж</button>
+
+    <div id="log"></div>
+</div>
+
+<script>
+function addField() {
+    const container = document.getElementById("extra-fields");
+    const field = document.createElement("div");
+    field.innerHTML = `
+        <input type="text" placeholder="ключ (например category)">
+        <input type="text" placeholder="значение">
+        <button onclick="this.parentElement.remove()">✖</button>
+    `;
+    container.appendChild(field);
+}
+
+function sendPayment() {
+    const url = document.getElementById("apiUrl").value.trim();
+    if (!url) return log("❗ Укажите URL API!");
+
+    const payload = {
+        user_id: document.getElementById("userId").value.trim(),
+        amount: parseFloat(document.getElementById("amount").value),
+        timestamp: Date.now()
+    };
+
+    document.querySelectorAll("#extra-fields div").forEach(div => {
+        const [keyInput, valueInput] = div.querySelectorAll("input");
+        const key = keyInput.value.trim();
+        if (key) payload[key] = valueInput.value.trim();
+    });
+
+    fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => log("Ответ:\n" + JSON.stringify(data, null, 2)))
+    .catch(e => log("Ошибка: " + e));
+}
+
+const log = t => document.getElementById("log").innerText = t;
+</script>
+
+</body>
+</html>

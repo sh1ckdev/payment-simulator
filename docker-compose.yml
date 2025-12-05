@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  emulator:
+    build: .
+    container_name: payment-emulator
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
