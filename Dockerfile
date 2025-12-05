@@ -2,14 +2,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# копируем пакетный файл (ускорит сборку)
-COPY package*.json /app/
-
+COPY package*.json ./
 RUN npm install
 
-# теперь копируем весь проект включая server.js и index.html
-COPY . /app/
+COPY . .
 
 EXPOSE 3000
-
 CMD ["npm", "start"]
